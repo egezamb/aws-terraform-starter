@@ -5,9 +5,9 @@
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat&logo=github-actions&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
-A clean, production-ready starter for deploying a basic but complete **AWS environment** with **Terraform**. Designed to be readable, well-commented, and a real reference for anyone (myself included) learning Infrastructure-as-Code.
+A clean, **learning-focused** starter for deploying a basic but complete **AWS environment** with **Terraform**. Designed to be readable, well-commented, and a real reference for anyone (myself included) learning Infrastructure-as-Code.
 
-This is the kind of foundation real DevOps teams build on — version control, CI on every push, secure defaults, tagged resources.
+It applies the same practices real DevOps teams rely on — version control, CI on every push, secure-by-default resources, consistent tagging — to a deliberately small, single-AZ footprint. It's a **reference and learning base, not a production blueprint**: for real workloads you'd add private subnets + NAT, remote state with locking, multi-AZ, and a load balancer (see [Next Steps](#next-steps--possible-extensions)).
 
 > Clone it, run `terraform apply`, and you have a live VPC + web server + secure S3 bucket in ~2 minutes. If it saves you time, a ⭐ helps others find it.
 
