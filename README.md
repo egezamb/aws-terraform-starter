@@ -9,6 +9,8 @@ A clean, production-ready starter for deploying a basic but complete **AWS envir
 
 This is the kind of foundation real DevOps teams build on — version control, CI on every push, secure defaults, tagged resources.
 
+> Clone it, run `terraform apply`, and you have a live VPC + web server + secure S3 bucket in ~2 minutes. If it saves you time, a ⭐ helps others find it.
+
 ---
 
 ## What This Deploys
