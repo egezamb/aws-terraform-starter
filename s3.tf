@@ -38,3 +38,30 @@ resource "aws_s3_bucket_public_access_block" "assets" {
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
+
+# Refuse any request that does not use TLS, so bucket traffic is never sent in plain text.
+data "aws_iam_policy_document" "assets_tls_only" {
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.assets.arn, "${aws_s3_bucket.assets.arn}/*"]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "assets" {
+  bucket = aws_s3_bucket.assets.id
+  policy = data.aws_iam_policy_document.assets_tls_only.json
+
+  # The public access block must exist first, or a policy could briefly be evaluated without it.
+  depends_on = [aws_s3_bucket_public_access_block.assets]
+}
