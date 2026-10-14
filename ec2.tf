@@ -67,6 +67,12 @@ resource "aws_instance" "web" {
 
   user_data_replace_on_change = true
 
+  # Encrypted at rest with the AWS-managed EBS key; gp3 is cheaper than gp2 for the same size.
+  root_block_device {
+    volume_type = "gp3"
+    encrypted   = true
+  }
+
   metadata_options {
     http_tokens   = "required"
     http_endpoint = "enabled"
