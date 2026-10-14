@@ -1,5 +1,5 @@
 .terraform/
-.terraform.lock.hcl
+# .terraform.lock.hcl is committed, so every machine and CI use the same provider builds.
 
 terraform.tfstate
 terraform.tfstate.backup
