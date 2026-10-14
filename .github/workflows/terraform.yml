@@ -42,3 +42,19 @@ jobs:
             echo "### Terraform CI"
             echo "- Format, init and validate: ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  security-scan:
+    name: Security scan (trivy config)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The scanner is downloaded by version and checked against the release checksum.
+      - name: Install trivy
+        run: |
+          curl -sSLo trivy.tgz https://github.com/aquasecurity/trivy/releases/download/v0.75.0/trivy_0.75.0_Linux-64bit.tar.gz
+          echo "c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f  trivy.tgz" | sha256sum -c -
+          tar xzf trivy.tgz trivy
+      # Accepted findings carry a trivy:ignore comment with the reason, on the resource itself.
+      - run: ./trivy config --skip-check-update --severity HIGH,CRITICAL --exit-code 1 .
