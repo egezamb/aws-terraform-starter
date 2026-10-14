@@ -67,7 +67,7 @@ This repo is the result of that learning, made public so anyone else starting Te
 
 - **Terraform** `>= 1.5.0`
 - **AWS Provider** `~> 5.0` (Hashicorp official)
-- **GitHub Actions** for CI (fmt + validate on every push/PR)
+- **GitHub Actions** for CI (fmt + validate + trivy security scan on every push/PR)
 - **Amazon Linux 2023** (latest AMI auto-selected via `data` source)
 
 ---
@@ -86,7 +86,7 @@ aws-terraform-starter/
 ├── .gitignore                # Excludes state files, .terraform/, secrets
 └── .github/
     └── workflows/
-        └── terraform.yml     # CI: fmt check + init + validate on every push
+        └── terraform.yml     # CI: fmt + init + validate, and a trivy security scan
 ```
 
 ---
@@ -129,8 +129,10 @@ Every push and pull request triggers a GitHub Actions workflow that:
 
 1. Runs `terraform fmt -check -recursive` (fails if code isn't formatted)
 2. Runs `terraform init -backend=false`
-3. Runs `terraform validate`
-4. Posts a summary comment on pull requests
+3. Runs `terraform validate` and writes the result to the job summary
+4. Scans the code with `trivy config` and fails on any new HIGH or CRITICAL finding. Findings accepted on purpose carry a `trivy:ignore` comment with the reason on the resource itself.
+
+The workflow has a read-only token and every action is pinned to a commit SHA. Dependabot proposes updates for the actions and the Terraform providers, and `.terraform.lock.hcl` is committed so CI uses the same provider builds as your machine.
 
 This catches formatting and syntax issues before code lands in `main` — exactly the kind of guardrails real DevOps teams set up.
 
@@ -142,8 +144,9 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
 - **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
-- **S3 bucket** has **all public access blocked**, **versioning enabled**, and **AES-256 server-side encryption** — secure-by-default.
+- **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
+- **EC2 root volume** is **encrypted** (gp3), and the security group allows **outbound HTTP and HTTPS only**.
 
 ---
 
