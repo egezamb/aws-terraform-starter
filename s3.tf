@@ -19,6 +19,7 @@ resource "aws_s3_bucket_versioning" "assets" {
   }
 }
 
+# trivy:ignore:AWS-0132 SSE-S3 (AES256) is enough for demo assets; a customer-managed KMS key costs $1/month plus requests.
 resource "aws_s3_bucket_server_side_encryption_configuration" "assets" {
   bucket = aws_s3_bucket.assets.id
 

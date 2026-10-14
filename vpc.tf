@@ -20,6 +20,7 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
+# trivy:ignore:AWS-0164 The web server is reached directly; a private subnet would need a NAT gateway (~$32/month).
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidr
