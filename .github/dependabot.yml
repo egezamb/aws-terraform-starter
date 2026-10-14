@@ -1,0 +1,18 @@
+# Weekly grouped PRs for the pinned actions and the Terraform providers; CI runs on each.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: terraform
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      providers:
+        patterns: ["*"]
