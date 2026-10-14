@@ -40,7 +40,12 @@ variable "instance_type" {
 }
 
 variable "allowed_ssh_cidr" {
-  description = "CIDR block allowed to SSH into the EC2 instance. Default is intentionally restrictive — override via tfvars."
+  description = "CIDR allowed to SSH into the instance, e.g. your IP as \"203.0.113.7/32\". Unset (the default) means no SSH port is opened at all."
   type        = string
-  default     = "0.0.0.0/0"
+  default     = null
+
+  validation {
+    condition     = var.allowed_ssh_cidr == null || (can(cidrhost(var.allowed_ssh_cidr, 0)) && var.allowed_ssh_cidr != "0.0.0.0/0")
+    error_message = "allowed_ssh_cidr must be a CIDR such as 203.0.113.7/32, and not 0.0.0.0/0 (SSH open to the whole internet)."
+  }
 }

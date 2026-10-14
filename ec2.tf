@@ -26,12 +26,16 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "SSH from allowed CIDR"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = [var.allowed_ssh_cidr]
+  # SSH only when a CIDR is given; the default opens no port 22 at all.
+  dynamic "ingress" {
+    for_each = var.allowed_ssh_cidr == null ? [] : [var.allowed_ssh_cidr]
+    content {
+      description = "SSH from allowed CIDR"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [ingress.value]
+    }
   }
 
   egress {

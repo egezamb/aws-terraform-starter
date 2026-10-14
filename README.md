@@ -49,7 +49,7 @@ It applies the same practices real DevOps teams rely on — version control, CI 
 | **Internet Gateway** | Provides internet access to the VPC |
 | **Public Subnet** | `10.0.1.0/24` in the first AZ, auto-assigns public IPs |
 | **Route Table** | Routes `0.0.0.0/0` traffic to the IGW |
-| **Security Group** | Allows HTTP (80) from anywhere, SSH (22) from configurable CIDR |
+| **Security Group** | Allows HTTP (80) from anywhere; SSH (22) only from `allowed_ssh_cidr`, and not at all when it is unset |
 | **EC2 Instance** | `t3.micro` (free-tier eligible) running Apache via `user_data`, IMDSv2 enforced |
 | **S3 Bucket** | Versioning enabled, AES-256 encryption, all public access blocked |
 
@@ -141,7 +141,7 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 ## Security Notes
 
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
-- **`allowed_ssh_cidr`** defaults to `0.0.0.0/0` so the example works out of the box, but you should always restrict this to your IP via `terraform.tfvars`.
+- **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
 - **S3 bucket** has **all public access blocked**, **versioning enabled**, and **AES-256 server-side encryption** — secure-by-default.
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
 
