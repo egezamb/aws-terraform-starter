@@ -65,3 +65,25 @@ resource "aws_s3_bucket_policy" "assets" {
   # The public access block must exist first, or a policy could briefly be evaluated without it.
   depends_on = [aws_s3_bucket_public_access_block.assets]
 }
+
+# Versioning keeps every overwritten or deleted object. Expire old versions after 30 days, so
+# storage cost does not grow forever, and clean up uploads that never finished.
+resource "aws_s3_bucket_lifecycle_configuration" "assets" {
+  bucket = aws_s3_bucket.assets.id
+
+  rule {
+    id     = "expire-old-versions"
+    status = "Enabled"
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+
+  depends_on = [aws_s3_bucket_versioning.assets]
+}
