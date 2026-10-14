@@ -4,7 +4,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 6.68"
     }
     # s3.tf uses random_id for the bucket suffix. Declared, so its version is pinned like aws's.
     random = {
