@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   terraform-check:
-    name: Format and validate
+    name: Format, validate and test
     runs-on: ubuntu-latest
 
     steps:
@@ -35,12 +35,16 @@ jobs:
       - name: Terraform validate
         run: terraform validate -no-color
 
+      # Plan-only tests with mocked providers (tests/): no AWS credentials needed
+      - name: Terraform test
+        run: terraform test -no-color
+
       - name: Summary
         if: always()
         run: |
           {
             echo "### Terraform CI"
-            echo "- Format, init and validate: ${{ job.status }}"
+            echo "- Format, init, validate and test: ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   security-scan:
