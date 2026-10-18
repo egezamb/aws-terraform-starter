@@ -67,7 +67,7 @@ This repo is the result of that learning, made public so anyone else starting Te
 
 - **Terraform** `>= 1.5.0`
 - **AWS Provider** `~> 5.0` (Hashicorp official)
-- **GitHub Actions** for CI (fmt + validate + trivy security scan on every push/PR)
+- **GitHub Actions** for CI (fmt + validate + `terraform test` + trivy security scan on every push/PR)
 - **Amazon Linux 2023** (latest AMI auto-selected via `data` source)
 
 ---
@@ -83,10 +83,11 @@ aws-terraform-starter/
 ├── s3.tf                     # S3 bucket with versioning + encryption + access block
 ├── outputs.tf                # Useful outputs (IPs, IDs, URLs)
 ├── terraform.tfvars.example  # Example variables file (copy to terraform.tfvars)
+├── tests/plan.tftest.hcl     # Plan-only tests with mocked providers (terraform test)
 ├── .gitignore                # Excludes state files, .terraform/, secrets
 └── .github/
     └── workflows/
-        └── terraform.yml     # CI: fmt + init + validate, and a trivy security scan
+        └── terraform.yml     # CI: fmt + init + validate + test, and a trivy security scan
 ```
 
 ---
@@ -129,7 +130,7 @@ Every push and pull request triggers a GitHub Actions workflow that:
 
 1. Runs `terraform fmt -check -recursive` (fails if code isn't formatted)
 2. Runs `terraform init -backend=false`
-3. Runs `terraform validate` and writes the result to the job summary
+3. Runs `terraform validate`, then `terraform test`: plan-only tests with mocked providers (`tests/plan.tftest.hcl`) that pin the secure defaults (SSH closed unless asked for, encrypted disk, IMDSv2, a private, versioned, TLS-only bucket). The result goes to the job summary.
 4. Scans the code with `trivy config` and fails on any new HIGH or CRITICAL finding. Findings accepted on purpose carry a `trivy:ignore` comment with the reason on the resource itself.
 
 The workflow has a read-only token and every action is pinned to a commit SHA. Dependabot proposes updates for the actions and the Terraform providers, and `.terraform.lock.hcl` is committed so CI uses the same provider builds as your machine.
