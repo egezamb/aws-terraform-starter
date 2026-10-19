@@ -148,6 +148,8 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 - **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
 - **EC2 root volume** is **encrypted** (gp3), and the security group allows **outbound HTTP and HTTPS only**.
+- **The VPC's default security group** has **no rules**, so anything launched into it by mistake gets no traffic.
+- **The AMI** is the standard Amazon Linux 2023 image, read from AWS's public SSM parameter for the instance type's architecture.
 
 ---
 
