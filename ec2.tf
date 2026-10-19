@@ -1,16 +1,8 @@
-data "aws_ami" "amazon_linux_2023" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["al2023-ami-*-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+# The current Amazon Linux 2023 AMI, from the public SSM parameter AWS keeps up to date for it.
+# A name filter such as "al2023-ami-*-x86_64" also matches the minimal and ECS-optimized AMIs,
+# and most_recent can pick one of those instead of the standard image.
+data "aws_ssm_parameter" "al2023_ami" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
 }
 
 resource "aws_security_group" "web" {
@@ -62,7 +54,7 @@ resource "aws_security_group" "web" {
 }
 
 resource "aws_instance" "web" {
-  ami                    = data.aws_ami.amazon_linux_2023.id
+  ami                    = data.aws_ssm_parameter.al2023_ami.insecure_value
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web.id]

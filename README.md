@@ -68,7 +68,7 @@ This repo is the result of that learning, made public so anyone else starting Te
 - **Terraform** `>= 1.5.0`
 - **AWS Provider** `~> 5.0` (Hashicorp official)
 - **GitHub Actions** for CI (fmt + validate + `terraform test` + trivy security scan on every push/PR)
-- **Amazon Linux 2023** (latest AMI auto-selected via `data` source)
+- **Amazon Linux 2023** (the current AMI, read from the public SSM parameter AWS maintains)
 
 ---
 
@@ -79,7 +79,7 @@ aws-terraform-starter/
 ├── providers.tf              # Terraform + AWS provider configuration
 ├── variables.tf              # All input variables with descriptions and validation
 ├── vpc.tf                    # VPC, IGW, subnet, route table
-├── ec2.tf                    # EC2 + security group + AMI lookup + user_data
+├── ec2.tf                    # EC2 + security group + AMI (SSM parameter) + user_data
 ├── s3.tf                     # S3 bucket with versioning + encryption + access block
 ├── outputs.tf                # Useful outputs (IPs, IDs, URLs)
 ├── terraform.tfvars.example  # Example variables file (copy to terraform.tfvars)
