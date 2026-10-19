@@ -1,8 +1,18 @@
+# The instance type decides the CPU architecture: t3 is x86_64, t4g (Graviton) is arm64. An AMI
+# for the other one would fail at launch.
+data "aws_ec2_instance_type" "web" {
+  instance_type = var.instance_type
+}
+
+locals {
+  ami_architecture = contains(data.aws_ec2_instance_type.web.supported_architectures, "arm64") ? "arm64" : "x86_64"
+}
+
 # The current Amazon Linux 2023 AMI, from the public SSM parameter AWS keeps up to date for it.
 # A name filter such as "al2023-ami-*-x86_64" also matches the minimal and ECS-optimized AMIs,
 # and most_recent can pick one of those instead of the standard image.
 data "aws_ssm_parameter" "al2023_ami" {
-  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-${local.ami_architecture}"
 }
 
 resource "aws_security_group" "web" {
