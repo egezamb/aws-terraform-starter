@@ -120,7 +120,7 @@ After ~2 minutes, Terraform will output the EC2 public DNS. Open `http://<public
 terraform destroy
 ```
 
-Always destroy when done — even free-tier instances accumulate small charges after the 12-month limit.
+Always destroy when done: once the credits or the free months run out, a running instance is billed.
 
 ---
 
@@ -153,11 +153,18 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
 ## Cost Estimate
 
-Roughly **free** if you stay within the AWS Free Tier:
-- `t3.micro` EC2 — 750 hours/month free for 12 months
-- VPC / Subnet / IGW / Route Table — free
-- S3 bucket (empty) — free
-- Data transfer (light testing) — free under 1 GB out per month
+A few dollars a month if left running. Who pays depends on when the AWS account was opened:
+
+- **Opened on or after 15 July 2025:** the Free Tier is credits — $100 at sign-up, up to $200 with
+  the onboarding tasks — on a Free plan that lasts up to 6 months. This stack's charges come off
+  the credits.
+- **Opened before 15 July 2025:** the legacy 12-month Free Tier, which includes 750 hours a month
+  of `t2.micro`/`t3.micro`.
+- **Billed in full:** roughly $12–14 a month in `eu-central-1`. Most of it is the instance
+  (`t3.micro`, about $9). The instance's public IPv4 address is billed by the hour (about $3.60)
+  and the 8 GB gp3 root volume adds under $1.
+
+The VPC, subnet, internet gateway and route table are free. An empty S3 bucket costs nothing.
 
 Run `terraform destroy` when you are done testing.
 
