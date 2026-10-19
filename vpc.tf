@@ -50,3 +50,13 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
 }
+
+# The VPC's default security group, managed with no rules: anything launched into it by mistake gets
+# no traffic at all, instead of the default "members talk to each other, anything goes out".
+resource "aws_default_security_group" "default" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-default-closed"
+  }
+}

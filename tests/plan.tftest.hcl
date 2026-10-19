@@ -153,3 +153,13 @@ run "a_graviton_instance_type_gets_the_arm64_ami" {
     error_message = "An arm64 instance type must get the arm64 AL2023 AMI."
   }
 }
+
+run "the_default_security_group_allows_nothing" {
+  # The rule sets are computed, so only known after an apply: the mocked one, no AWS involved.
+  command = apply
+
+  assert {
+    condition     = length(aws_default_security_group.default.ingress) == 0 && length(aws_default_security_group.default.egress) == 0
+    error_message = "The VPC's default security group must have no rules."
+  }
+}
