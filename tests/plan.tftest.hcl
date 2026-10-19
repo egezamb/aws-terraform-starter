@@ -8,9 +8,9 @@ mock_provider "aws" {
       names = ["eu-central-1a", "eu-central-1b"]
     }
   }
-  mock_data "aws_ami" {
+  mock_data "aws_ssm_parameter" {
     defaults = {
-      id = "ami-0123456789abcdef0"
+      insecure_value = "ami-0123456789abcdef0"
     }
   }
   mock_data "aws_iam_policy_document" {
@@ -114,4 +114,17 @@ run "an_unknown_environment_is_refused" {
   }
 
   expect_failures = [var.environment]
+}
+
+run "the_ami_is_the_standard_amazon_linux_2023_image" {
+  command = plan
+
+  assert {
+    condition     = data.aws_ssm_parameter.al2023_ami.name == "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64"
+    error_message = "The AMI must come from AWS's public parameter for the standard AL2023 image, not a name filter."
+  }
+  assert {
+    condition     = aws_instance.web.ami == "ami-0123456789abcdef0"
+    error_message = "The instance must run the AMI the parameter names."
+  }
 }
