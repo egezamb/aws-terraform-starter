@@ -34,7 +34,7 @@ variable "public_subnet_cidr" {
 }
 
 variable "instance_type" {
-  description = "EC2 instance type (default is free-tier eligible)"
+  description = "EC2 instance type (default is free-tier eligible). x86 (t3) or Graviton (t4g): the AMI follows the type's architecture."
   type        = string
   default     = "t3.micro"
 }
