@@ -49,3 +49,14 @@ variable "allowed_ssh_cidr" {
     error_message = "allowed_ssh_cidr must be a CIDR such as 203.0.113.7/32, and not 0.0.0.0/0 (SSH open to the whole internet)."
   }
 }
+
+variable "flow_log_retention_days" {
+  description = "Days the VPC flow logs are kept in S3 before they are deleted"
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.flow_log_retention_days >= 1
+    error_message = "flow_log_retention_days must be at least 1."
+  }
+}
