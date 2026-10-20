@@ -27,6 +27,14 @@ mock_provider "aws" {
 
 mock_provider "random" {}
 
+# The provider checks the flow log's destination ARN, and the mock's random strings aren't ARNs.
+override_resource {
+  target = aws_s3_bucket.flow_logs
+  values = {
+    arn = "arn:aws:s3:::aws-terraform-starter-flow-logs-mock"
+  }
+}
+
 run "ssh_is_closed_by_default" {
   command = plan
 
@@ -161,5 +169,22 @@ run "the_default_security_group_allows_nothing" {
   assert {
     condition     = length(aws_default_security_group.default.ingress) == 0 && length(aws_default_security_group.default.egress) == 0
     error_message = "The VPC's default security group must have no rules."
+  }
+}
+
+run "the_vpc_records_its_traffic_in_flow_logs_that_expire" {
+  command = plan
+
+  assert {
+    condition     = aws_flow_log.vpc.traffic_type == "ALL" && aws_flow_log.vpc.log_destination_type == "s3"
+    error_message = "The VPC must log accepted and rejected traffic to S3, which needs no IAM role."
+  }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.flow_logs.rule[0].expiration[0].days == 30
+    error_message = "Flow logs expire after flow_log_retention_days (30 by default), so the bucket does not grow forever."
+  }
+  assert {
+    condition     = aws_s3_bucket_public_access_block.flow_logs.block_public_acls && aws_s3_bucket_public_access_block.flow_logs.restrict_public_buckets
+    error_message = "The flow log bucket must block public access like the assets bucket."
   }
 }
