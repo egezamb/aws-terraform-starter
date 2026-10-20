@@ -37,3 +37,8 @@ output "s3_bucket_arn" {
   description = "ARN of the S3 bucket"
   value       = aws_s3_bucket.assets.arn
 }
+
+output "flow_logs_bucket" {
+  description = "S3 bucket with the VPC flow logs. List them with: aws s3 ls s3://<name>/AWSLogs/ --recursive"
+  value       = aws_s3_bucket.flow_logs.bucket
+}
