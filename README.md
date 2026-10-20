@@ -52,6 +52,7 @@ It applies the same practices real DevOps teams rely on — version control, CI 
 | **Security Group** | Allows HTTP (80) from anywhere; SSH (22) only from `allowed_ssh_cidr`, and not at all when it is unset |
 | **EC2 Instance** | `t3.micro` (free-tier eligible) running Apache via `user_data`, IMDSv2 enforced |
 | **S3 Bucket** | Versioning enabled, AES-256 encryption, all public access blocked |
+| **VPC Flow Logs** | Every accepted and rejected connection, to a private S3 bucket; deleted after 30 days |
 
 ---
 
@@ -81,6 +82,7 @@ aws-terraform-starter/
 ├── vpc.tf                    # VPC, IGW, subnet, route table
 ├── ec2.tf                    # EC2 + security group + AMI (SSM parameter) + user_data
 ├── s3.tf                     # S3 bucket with versioning + encryption + access block
+├── flow_logs.tf              # VPC flow logs to a private S3 bucket that expires them
 ├── outputs.tf                # Useful outputs (IPs, IDs, URLs)
 ├── terraform.tfvars.example  # Example variables file (copy to terraform.tfvars)
 ├── tests/plan.tftest.hcl     # Plan-only tests with mocked providers (terraform test)
@@ -146,6 +148,7 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
 - **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
 - **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
+- **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30).
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
 - **EC2 root volume** is **encrypted** (gp3), and the security group allows **outbound HTTP and HTTPS only**.
 - **The VPC's default security group** has **no rules**, so anything launched into it by mistake gets no traffic.
@@ -166,7 +169,7 @@ A few dollars a month if left running. Who pays depends on when the AWS account 
   (`t3.micro`, about $9). The instance's public IPv4 address is billed by the hour (about $3.60)
   and the 8 GB gp3 root volume adds under $1.
 
-The VPC, subnet, internet gateway and route table are free. An empty S3 bucket costs nothing.
+The VPC, subnet, internet gateway and route table are free. An empty S3 bucket costs nothing. Flow logs are billed per GB delivered to S3; a quiet test stack writes a few MB a month.
 
 Run `terraform destroy` when you are done testing.
 
