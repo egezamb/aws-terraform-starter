@@ -188,3 +188,12 @@ run "the_vpc_records_its_traffic_in_flow_logs_that_expire" {
     error_message = "The flow log bucket must block public access like the assets bucket."
   }
 }
+
+run "the_flow_log_bucket_is_an_output" {
+  command = apply
+
+  assert {
+    condition     = output.flow_logs_bucket == aws_s3_bucket.flow_logs.bucket
+    error_message = "The flow log bucket's name is an output, so you know where to read the logs."
+  }
+}
