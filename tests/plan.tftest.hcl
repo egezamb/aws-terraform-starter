@@ -254,3 +254,28 @@ run "a_public_subnet_inside_a_custom_vpc_is_accepted" {
     error_message = "A subnet inside the VPC must be planned as given."
   }
 }
+
+run "the_flow_log_bucket_is_tls_only_and_writable_only_by_this_accounts_log_delivery" {
+  command = plan
+
+  assert {
+    condition     = aws_s3_bucket_policy.flow_logs.bucket == aws_s3_bucket.flow_logs.id
+    error_message = "The flow log bucket must have its own bucket policy, managed here."
+  }
+  assert {
+    condition = anytrue([
+      for s in data.aws_iam_policy_document.flow_logs.statement :
+      s.effect == "Deny" && anytrue([for c in s.condition : c.variable == "aws:SecureTransport" && contains(c.values, "false")])
+    ])
+    error_message = "The flow log bucket policy must deny requests that don't use TLS, like the assets bucket's."
+  }
+  assert {
+    condition = anytrue([
+      for s in data.aws_iam_policy_document.flow_logs.statement :
+      s.effect == "Allow" && contains(s.actions, "s3:PutObject")
+      && anytrue([for p in s.principals : contains(p.identifiers, "delivery.logs.amazonaws.com")])
+      && anytrue([for c in s.condition : c.variable == "aws:SourceAccount"])
+    ])
+    error_message = "Log delivery may write only on behalf of this account (aws:SourceAccount), against the confused-deputy problem."
+  }
+}
