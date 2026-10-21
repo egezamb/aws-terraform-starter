@@ -10,6 +10,9 @@ resource "aws_flow_log" "vpc" {
   tags = {
     Name = "${var.project_name}-vpc-flow-log"
   }
+
+  # The bucket policy must be in place first, or AWS writes its own into the bucket.
+  depends_on = [aws_s3_bucket_policy.flow_logs]
 }
 
 # trivy:ignore:AWS-0089 This bucket only receives logs; logging access to a log bucket would need yet another bucket.
@@ -57,4 +60,86 @@ resource "aws_s3_bucket_lifecycle_configuration" "flow_logs" {
       days = var.flow_log_retention_days
     }
   }
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_region" "current" {}
+
+# Left alone, AWS writes its own log-delivery policy to the bucket when the flow log is created,
+# and Terraform would not know about it. This one holds the same two statements AWS documents,
+# scoped to this account's flow logs (aws:SourceAccount, aws:SourceArn) so another account's log
+# delivery cannot write here, plus a deny for any request without TLS, like the assets bucket's.
+# Should AWS still replace it, the next apply puts it back, and delivery keeps the same access.
+data "aws_iam_policy_document" "flow_logs" {
+  statement {
+    sid       = "AWSLogDeliveryWrite"
+    effect    = "Allow"
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.flow_logs.arn}/AWSLogs/${data.aws_caller_identity.current.account_id}/*"]
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    }
+  }
+
+  statement {
+    sid       = "AWSLogDeliveryAclCheck"
+    effect    = "Allow"
+    actions   = ["s3:GetBucketAcl"]
+    resources = [aws_s3_bucket.flow_logs.arn]
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = ["arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*"]
+    }
+  }
+
+  statement {
+    sid       = "DenyInsecureTransport"
+    effect    = "Deny"
+    actions   = ["s3:*"]
+    resources = [aws_s3_bucket.flow_logs.arn, "${aws_s3_bucket.flow_logs.arn}/*"]
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "flow_logs" {
+  bucket = aws_s3_bucket.flow_logs.id
+  policy = data.aws_iam_policy_document.flow_logs.json
+
+  # The public access block must exist first, or a policy could briefly be evaluated without it.
+  depends_on = [aws_s3_bucket_public_access_block.flow_logs]
 }
