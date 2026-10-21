@@ -114,6 +114,8 @@ terraform plan
 terraform apply
 ```
 
+Changing `vpc_cidr` or `public_subnet_cidr`? The VPC must be /16 to /28 and the subnet must lie inside it. `terraform plan` checks both, so a wrong pair fails before anything is created.
+
 After ~2 minutes, Terraform will output the EC2 public DNS. Open `http://<public-dns>` and you'll see the deployed web server.
 
 ### Destroy
