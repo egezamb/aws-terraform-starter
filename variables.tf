@@ -22,9 +22,15 @@ variable "environment" {
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block for the VPC"
+  description = "CIDR block for the VPC, from /16 to /28"
   type        = string
   default     = "10.0.0.0/16"
+
+  # AWS refuses any other size, but only at apply, after the plan looked fine.
+  validation {
+    condition     = can(cidrhost(var.vpc_cidr, 0)) && can(regex("^[0-9.]+/(1[6-9]|2[0-8])$", var.vpc_cidr))
+    error_message = "vpc_cidr must be an IPv4 CIDR from /16 to /28, such as 10.0.0.0/16."
+  }
 }
 
 variable "public_subnet_cidr" {
