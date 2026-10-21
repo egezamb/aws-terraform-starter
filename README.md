@@ -150,7 +150,7 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
 - **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
 - **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
-- **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30).
+- **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30). The bucket's policy is managed here rather than left to AWS: it denies requests without TLS, and lets the log delivery service write only for this account's flow logs (`aws:SourceAccount`, `aws:SourceArn`), so another account cannot use it to drop files in the bucket.
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
 - **EC2 root volume** is **encrypted** (gp3), and the security group allows **outbound HTTP and HTTPS only**.
 - **The VPC's default security group** has **no rules**, so anything launched into it by mistake gets no traffic.
