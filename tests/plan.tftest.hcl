@@ -197,3 +197,24 @@ run "the_flow_log_bucket_is_an_output" {
     error_message = "The flow log bucket's name is an output, so you know where to read the logs."
   }
 }
+
+run "a_vpc_cidr_aws_cannot_create_is_refused" {
+  command = plan
+
+  # AWS only creates VPCs from /16 to /28; a /8 would fail at apply, after other resources exist.
+  variables {
+    vpc_cidr = "10.0.0.0/8"
+  }
+
+  expect_failures = [var.vpc_cidr]
+}
+
+run "a_vpc_cidr_that_is_not_a_cidr_is_refused" {
+  command = plan
+
+  variables {
+    vpc_cidr = "10.0.0.0"
+  }
+
+  expect_failures = [var.vpc_cidr]
+}
