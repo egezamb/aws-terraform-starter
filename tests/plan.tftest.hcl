@@ -218,3 +218,39 @@ run "a_vpc_cidr_that_is_not_a_cidr_is_refused" {
 
   expect_failures = [var.vpc_cidr]
 }
+
+run "a_public_subnet_outside_the_vpc_is_refused" {
+  command = plan
+
+  variables {
+    vpc_cidr           = "10.0.0.0/16"
+    public_subnet_cidr = "10.1.1.0/24"
+  }
+
+  expect_failures = [aws_subnet.public]
+}
+
+run "a_public_subnet_larger_than_the_vpc_is_refused" {
+  command = plan
+
+  variables {
+    vpc_cidr           = "10.0.0.0/24"
+    public_subnet_cidr = "10.0.0.0/16"
+  }
+
+  expect_failures = [aws_subnet.public]
+}
+
+run "a_public_subnet_inside_a_custom_vpc_is_accepted" {
+  command = plan
+
+  variables {
+    vpc_cidr           = "172.16.0.0/20"
+    public_subnet_cidr = "172.16.15.0/24"
+  }
+
+  assert {
+    condition     = aws_subnet.public.cidr_block == "172.16.15.0/24"
+    error_message = "A subnet inside the VPC must be planned as given."
+  }
+}
