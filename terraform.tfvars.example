@@ -2,6 +2,7 @@ aws_region   = "eu-central-1"
 project_name = "aws-terraform-starter"
 environment  = "dev"
 
+# The VPC takes /16 to /28, and the subnet must lie inside it; the plan fails otherwise.
 vpc_cidr           = "10.0.0.0/16"
 public_subnet_cidr = "10.0.1.0/24"
 
