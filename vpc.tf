@@ -31,6 +31,18 @@ resource "aws_subnet" "public" {
     Name = "${var.project_name}-public-subnet"
     Tier = "public"
   }
+
+  # AWS only rejects a subnet outside the VPC at apply. Here the plan fails instead: the subnet must
+  # be no larger than the VPC, and its network address cut to the VPC's prefix must be the VPC's.
+  lifecycle {
+    precondition {
+      condition = (
+        tonumber(split("/", var.public_subnet_cidr)[1]) >= tonumber(split("/", var.vpc_cidr)[1]) &&
+        cidrhost("${cidrhost(var.public_subnet_cidr, 0)}/${split("/", var.vpc_cidr)[1]}", 0) == cidrhost(var.vpc_cidr, 0)
+      )
+      error_message = "public_subnet_cidr (${var.public_subnet_cidr}) must lie inside vpc_cidr (${var.vpc_cidr})."
+    }
+  }
 }
 
 resource "aws_route_table" "public" {
