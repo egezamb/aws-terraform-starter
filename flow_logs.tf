@@ -59,6 +59,12 @@ resource "aws_s3_bucket_lifecycle_configuration" "flow_logs" {
     expiration {
       days = var.flow_log_retention_days
     }
+
+    # Parts of an upload that never finished are billed until removed, and expiration does not
+    # touch them; the assets bucket has the same rule.
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 
