@@ -48,6 +48,19 @@ run "ssh_is_closed_by_default" {
   }
 }
 
+run "session_manager_needs_no_open_port" {
+  command = plan
+
+  assert {
+    condition     = aws_instance.web.iam_instance_profile == aws_iam_instance_profile.web.name
+    error_message = "The instance must carry the Session Manager instance profile."
+  }
+  assert {
+    condition     = aws_iam_role_policy_attachment.web_ssm.policy_arn == "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    error_message = "The instance role must allow the SSM agent to register, and nothing more."
+  }
+}
+
 run "allowed_ssh_cidr_opens_ssh_to_that_cidr_only" {
   command = plan
 
