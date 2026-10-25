@@ -63,11 +63,39 @@ resource "aws_security_group" "web" {
   }
 }
 
+# A shell without an open port: Session Manager. Amazon Linux 2023 ships the SSM agent, and this
+# role lets it register (`aws ssm start-session --target <instance-id>`). No key pair to keep.
+data "aws_iam_policy_document" "ec2_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "web" {
+  name               = "${var.project_name}-web"
+  assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
+}
+
+resource "aws_iam_role_policy_attachment" "web_ssm" {
+  role       = aws_iam_role.web.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "web" {
+  name = "${var.project_name}-web"
+  role = aws_iam_role.web.name
+}
+
 resource "aws_instance" "web" {
   ami                    = data.aws_ssm_parameter.al2023_ami.insecure_value
   instance_type          = var.instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.web.id]
+  iam_instance_profile   = aws_iam_instance_profile.web.name
 
   user_data = <<-EOF
               #!/bin/bash
