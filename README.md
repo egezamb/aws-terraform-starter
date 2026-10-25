@@ -51,6 +51,7 @@ It applies the same practices real DevOps teams rely on — version control, CI 
 | **Route Table** | Routes `0.0.0.0/0` traffic to the IGW |
 | **Security Group** | Allows HTTP (80) from anywhere; SSH (22) only from `allowed_ssh_cidr`, and not at all when it is unset |
 | **EC2 Instance** | `t3.micro` (free-tier eligible) running Apache via `user_data`, IMDSv2 enforced |
+| **IAM Role** | Lets the instance's SSM agent register, for a Session Manager shell with no port open |
 | **S3 Bucket** | Versioning enabled, AES-256 encryption, all public access blocked |
 | **VPC Flow Logs** | Every accepted and rejected connection, to a private S3 bucket; deleted after 30 days |
 
@@ -107,7 +108,7 @@ git clone https://github.com/egezamb/aws-terraform-starter.git
 cd aws-terraform-starter
 
 cp terraform.tfvars.example terraform.tfvars
-# Open terraform.tfvars and set `allowed_ssh_cidr` to your IP (e.g. "1.2.3.4/32")
+# Optional: set `allowed_ssh_cidr` to your IP (e.g. "1.2.3.4/32") to open SSH; Session Manager needs no port
 
 terraform init
 terraform plan
@@ -117,6 +118,8 @@ terraform apply
 Changing `vpc_cidr` or `public_subnet_cidr`? The VPC must be /16 to /28 and the subnet must lie inside it. `terraform plan` checks both, so a wrong pair fails before anything is created.
 
 After ~2 minutes, Terraform will output the EC2 public DNS. Open `http://<public-dns>` and you'll see the deployed web server.
+
+For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): `aws ssm start-session --target <instance-id>`.
 
 ### Destroy
 
@@ -134,7 +137,7 @@ Every push and pull request triggers a GitHub Actions workflow that:
 
 1. Runs `terraform fmt -check -recursive` (fails if code isn't formatted)
 2. Runs `terraform init -backend=false`
-3. Runs `terraform validate`, then `terraform test`: plan-only tests with mocked providers (`tests/plan.tftest.hcl`) that pin the secure defaults (SSH closed unless asked for, encrypted disk, IMDSv2, a private, versioned, TLS-only bucket). The result goes to the job summary.
+3. Runs `terraform validate`, then `terraform test`: plan-only tests with mocked providers (`tests/plan.tftest.hcl`) that pin the secure defaults (SSH closed unless asked for, a Session Manager profile, encrypted disk, IMDSv2, a private, versioned, TLS-only bucket). The result goes to the job summary.
 4. Scans the code with `trivy config` and fails on any new HIGH or CRITICAL finding. Findings accepted on purpose carry a `trivy:ignore` comment with the reason on the resource itself.
 
 The workflow has a read-only token and every action is pinned to a commit SHA. Dependabot proposes updates for the actions and the Terraform providers, and `.terraform.lock.hcl` is committed so CI uses the same provider builds as your machine.
@@ -148,6 +151,7 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 ## Security Notes
 
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
+- **Session Manager** is the way in: the instance role grants only `AmazonSSMManagedInstanceCore`, so a shell needs no open port and no key pair, and each session is recorded in CloudTrail.
 - **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
 - **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
 - **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30). The bucket's policy is managed here rather than left to AWS: it denies requests without TLS, and lets the log delivery service write only for this account's flow logs (`aws:SourceAccount`, `aws:SourceArn`), so another account cannot use it to drop files in the bucket.
