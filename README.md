@@ -95,6 +95,8 @@ aws-terraform-starter/
 
 ---
 
+See [the operations guide](docs/operations.md) for configuration, connection troubleshooting and safe cleanup.
+
 ## Quick Start
 
 ### Prerequisites
@@ -115,17 +117,21 @@ terraform plan
 terraform apply
 ```
 
+Project names must be 2–44 lowercase letters, digits or hyphens, start with a letter and end with a letter or digit. This leaves room for the generated S3 bucket suffixes.
+
 Changing `vpc_cidr` or `public_subnet_cidr`? The VPC must be /16 to /28 and the subnet must lie inside it. `terraform plan` checks both, so a wrong pair fails before anything is created.
 
 After ~2 minutes, Terraform will output the EC2 public DNS. Open `http://<public-dns>` and you'll see the deployed web server.
 
-For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): `aws ssm start-session --target <instance-id>`.
+For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): copy the command printed by `terraform output -raw session_manager_command`.
 
 ### Destroy
 
 ```bash
 terraform destroy
 ```
+
+**Bucket deletion is protected by default.** A nonempty bucket makes destroy fail instead of deleting your data. For disposable labs only, set `allow_bucket_force_destroy = true`, run `terraform apply` to persist that choice, then destroy. This removes every asset version and flow log.
 
 Always destroy when done: once the credits or the free months run out, a running instance is billed.
 
@@ -144,6 +150,8 @@ The workflow has a read-only token and every action is pinned to a commit SHA. D
 
 This catches formatting and syntax issues before code lands in `main` — exactly the kind of guardrails real DevOps teams set up.
 
+Run `make check` locally for backend-free init, formatting, validation, mocked Terraform tests and bootstrap tests. It needs Terraform 1.9.5 or newer, Python 3 and Make, but no AWS account. Run `make security` separately with Trivy installed.
+
 See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
 ---
@@ -152,9 +160,9 @@ See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
 - **State files** (`*.tfstate`) and **`terraform.tfvars`** are gitignored — they can contain secrets and resource IDs.
 - **Session Manager** is the way in: the instance role grants only `AmazonSSMManagedInstanceCore`, so a shell needs no open port and no key pair, and each session is recorded in CloudTrail.
-- **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) in `terraform.tfvars` to SSH in; `0.0.0.0/0` is rejected.
-- **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after 30 days.
-- **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30). The bucket's policy is managed here rather than left to AWS: it denies requests without TLS, and lets the log delivery service write only for this account's flow logs (`aws:SourceAccount`, `aws:SourceArn`), so another account cannot use it to drop files in the bucket.
+- **`allowed_ssh_cidr`** is unset by default, so no SSH port is opened. Set it to your IP (`"1.2.3.4/32"`) and set `ssh_key_name` to an existing EC2 key pair in the same region in `terraform.tfvars` to SSH in; Only IPv4 CIDRs with prefixes from `/1` to `/32` are accepted; every `/0` spelling (including `203.0.113.7/0`) is rejected.
+- **S3 bucket** has **all public access blocked**, **versioning enabled**, **AES-256 server-side encryption**, and a policy that **denies any request without TLS**. Old object versions expire after `asset_version_retention_days` (30 by default); current objects are retained.
+- **VPC flow logs** record every accepted and rejected connection in a private, encrypted S3 bucket, so blocked scans and unexpected outbound traffic leave a trace. They go to S3 because a CloudWatch destination needs an IAM role; logs are deleted after `flow_log_retention_days` (30). Set a whole number of days of at least 1; fractional, zero and negative values are rejected during planning. The bucket's policy is managed here rather than left to AWS: it denies requests without TLS, and lets the log delivery service write only for this account's flow logs (`aws:SourceAccount`, `aws:SourceArn`), so another account cannot use it to drop files in the bucket.
 - **EC2 metadata service** is locked to **IMDSv2 only** to prevent SSRF attacks.
 - **EC2 root volume** is **encrypted** (gp3), and the security group allows **outbound HTTP and HTTPS only**.
 - **The VPC's default security group** has **no rules**, so anything launched into it by mistake gets no traffic.

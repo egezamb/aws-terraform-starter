@@ -26,3 +26,5 @@ provider "aws" {
     }
   }
 }
+
+data "aws_partition" "current" {}

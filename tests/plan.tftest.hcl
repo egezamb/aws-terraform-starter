@@ -3,6 +3,9 @@
 # They pin the secure defaults, so a change that loosens one fails here before review.
 
 mock_provider "aws" {
+  mock_data "aws_partition" {
+    defaults = { partition = "aws" }
+  }
   mock_data "aws_availability_zones" {
     defaults = {
       names = ["eu-central-1a", "eu-central-1b"]
@@ -290,5 +293,284 @@ run "the_flow_log_bucket_is_tls_only_and_writable_only_by_this_accounts_log_deli
       && anytrue([for c in s.condition : c.variable == "aws:SourceAccount"])
     ])
     error_message = "Log delivery may write only on behalf of this account (aws:SourceAccount), against the confused-deputy problem."
+  }
+}
+
+run "ipv6_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "2001:db8::/64"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "noncanonical_worldwide_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "203.0.113.7/0"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "invalid_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "not-a-cidr"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "ssh_allows_an_ipv4_subnet" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "203.0.113.0/24"
+  }
+  assert {
+    condition = anytrue([
+      for rule in aws_security_group.web.ingress :
+      rule.from_port == 22 && contains(rule.cidr_blocks, "203.0.113.0/24")
+    ])
+    error_message = "An explicit IPv4 subnet must remain supported for SSH."
+  }
+}
+
+run "fractional_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = 1.5
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "zero_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = 0
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "negative_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = -1
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "flow_logs_can_expire_after_1_days" {
+  command = plan
+  variables {
+    flow_log_retention_days = 1
+  }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.flow_logs.rule[0].expiration[0].days == 1
+    error_message = "The lifecycle must use the requested whole number of days."
+  }
+}
+
+run "flow_logs_can_expire_after_90_days" {
+  command = plan
+  variables {
+    flow_log_retention_days = 90
+  }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.flow_logs.rule[0].expiration[0].days == 90
+    error_message = "The lifecycle must use the requested whole number of days."
+  }
+}
+
+run "malformed_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "bad"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}
+
+
+run "ipv6_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "2001:db8::/64"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}
+
+
+run "tiny_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "10.0.1.0/29"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}
+
+run "uppercase_project" {
+  command = plan
+  variables {
+    project_name = "MyProject"
+  }
+  expect_failures = [var.project_name]
+}
+
+
+run "oversized_project" {
+  command = plan
+  variables {
+    project_name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+  expect_failures = [var.project_name]
+}
+
+
+run "shell_project" {
+  command = plan
+  variables {
+    project_name = "demo;id"
+  }
+  expect_failures = [var.project_name]
+}
+
+run "null_inputs_use_safe_defaults" {
+  command = plan
+  variables {
+    project_name            = null
+    flow_log_retention_days = null
+    public_subnet_cidr      = null
+  }
+  assert {
+    condition     = var.project_name == "aws-terraform-starter" && var.flow_log_retention_days == 30 && var.public_subnet_cidr == "10.0.1.0/24"
+    error_message = "null_inputs_use_safe_defaults failed."
+  }
+}
+
+run "ssh_uses_the_requested_key_pair" {
+  command = plan
+  variables {
+    ssh_key_name     = "lab-key"
+    allowed_ssh_cidr = "203.0.113.7/32"
+  }
+  assert {
+    condition     = aws_instance.web.key_name == "lab-key"
+    error_message = "ssh_uses_the_requested_key_pair failed."
+  }
+}
+
+
+run "empty_key_name" {
+  command = plan
+  variables {
+    ssh_key_name = " "
+  }
+  expect_failures = [var.ssh_key_name]
+}
+
+run "custom_root_disk" {
+  command = plan
+  variables { root_volume_size_gib = 20 }
+  assert {
+    condition     = aws_instance.web.root_block_device[0].volume_size == 20 && aws_instance.web.root_block_device[0].encrypted
+    error_message = "custom_root_disk failed."
+  }
+}
+
+
+run "too_small_disk" {
+  command = plan
+  variables {
+    root_volume_size_gib = 7
+  }
+  expect_failures = [var.root_volume_size_gib]
+}
+
+
+run "fractional_disk" {
+  command = plan
+  variables {
+    root_volume_size_gib = 8.5
+  }
+  expect_failures = [var.root_volume_size_gib]
+}
+
+run "custom_asset_retention" {
+  command = plan
+  variables { asset_version_retention_days = 90 }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.assets.rule[0].noncurrent_version_expiration[0].noncurrent_days == 90
+    error_message = "custom_asset_retention failed."
+  }
+}
+
+run "fractional_asset_retention" {
+  command = plan
+  variables {
+    asset_version_retention_days = 1.5
+  }
+  expect_failures = [var.asset_version_retention_days]
+}
+
+run "nonempty_buckets_are_protected" {
+  command = plan
+
+  assert {
+    condition     = !aws_s3_bucket.assets.force_destroy && !aws_s3_bucket.flow_logs.force_destroy
+    error_message = "nonempty_buckets_are_protected failed."
+  }
+}
+
+run "disposable_buckets_can_be_destroyed" {
+  command = plan
+  variables { allow_bucket_force_destroy = true }
+  assert {
+    condition     = aws_s3_bucket.assets.force_destroy && aws_s3_bucket.flow_logs.force_destroy
+    error_message = "disposable_buckets_can_be_destroyed failed."
+  }
+}
+
+run "connection_command_uses_selected_region" {
+  command = apply
+  variables { aws_region = "eu-west-1" }
+  assert {
+    condition     = output.session_manager_command == "aws ssm start-session --region 'eu-west-1' --target '${aws_instance.web.id}'"
+    error_message = "connection_command_uses_selected_region failed."
+  }
+}
+
+run "http_can_be_closed" {
+  command = plan
+  variables { allowed_http_cidrs = [] }
+  assert {
+    condition     = length(aws_security_group.web.ingress) == 0
+    error_message = "http_can_be_closed failed."
+  }
+}
+
+run "http_can_be_limited" {
+  command = plan
+  variables { allowed_http_cidrs = ["203.0.113.0/24"] }
+  assert {
+    condition     = alltrue([for rule in aws_security_group.web.ingress : rule.from_port != 80 || rule.cidr_blocks == tolist(["203.0.113.0/24"])])
+    error_message = "http_can_be_limited failed."
+  }
+}
+
+run "ipv6_http_cidr" {
+  command = plan
+  variables {
+    allowed_http_cidrs = ["::/0"]
+  }
+  expect_failures = [var.allowed_http_cidrs]
+}
+
+run "iam_uses_provider_partition" {
+  command = plan
+  override_data {
+    target = data.aws_partition.current
+    values = { partition = "aws-cn" }
+  }
+  assert {
+    condition     = aws_iam_role_policy_attachment.web_ssm.policy_arn == "arn:aws-cn:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    error_message = "iam_uses_provider_partition failed."
   }
 }

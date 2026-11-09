@@ -1,0 +1,10 @@
+#!/bin/bash
+set -euo pipefail
+
+dnf update -y
+dnf install -y httpd
+mkdir -p /var/www/html
+cat > /var/www/html/index.html <<'HTML'
+<h1>Hello from ${project_name} — deployed by Terraform</h1>
+HTML
+systemctl enable --now httpd

@@ -36,9 +36,10 @@ resource "aws_subnet" "public" {
   # be no larger than the VPC, and its network address cut to the VPC's prefix must be the VPC's.
   lifecycle {
     precondition {
-      condition = (
+      condition = try(
         tonumber(split("/", var.public_subnet_cidr)[1]) >= tonumber(split("/", var.vpc_cidr)[1]) &&
-        cidrhost("${cidrhost(var.public_subnet_cidr, 0)}/${split("/", var.vpc_cidr)[1]}", 0) == cidrhost(var.vpc_cidr, 0)
+        cidrhost("${cidrhost(var.public_subnet_cidr, 0)}/${split("/", var.vpc_cidr)[1]}", 0) == cidrhost(var.vpc_cidr, 0),
+        false
       )
       error_message = "public_subnet_cidr (${var.public_subnet_cidr}) must lie inside vpc_cidr (${var.vpc_cidr})."
     }
