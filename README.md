@@ -119,7 +119,7 @@ Changing `vpc_cidr` or `public_subnet_cidr`? The VPC must be /16 to /28 and the 
 
 After ~2 minutes, Terraform will output the EC2 public DNS. Open `http://<public-dns>` and you'll see the deployed web server.
 
-For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): `aws ssm start-session --target <instance-id>`.
+For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): copy the command printed by `terraform output -raw session_manager_command`.
 
 ### Destroy
 

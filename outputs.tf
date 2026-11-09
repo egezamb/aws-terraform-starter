@@ -42,3 +42,8 @@ output "flow_logs_bucket" {
   description = "S3 bucket with the VPC flow logs. List them with: aws s3 ls s3://<name>/AWSLogs/ --recursive"
   value       = aws_s3_bucket.flow_logs.bucket
 }
+
+output "session_manager_command" {
+  description = "Shell command to connect using the AWS CLI Session Manager plugin."
+  value       = "aws ssm start-session --region '${replace(var.aws_region, "'", "'\"'\"'")}' --target '${aws_instance.web.id}'"
+}

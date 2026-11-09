@@ -524,3 +524,12 @@ run "disposable_buckets_can_be_destroyed" {
     error_message = "disposable_buckets_can_be_destroyed failed."
   }
 }
+
+run "connection_command_uses_selected_region" {
+  command = apply
+  variables { aws_region = "eu-west-1" }
+  assert {
+    condition     = output.session_manager_command == "aws ssm start-session --region 'eu-west-1' --target '${aws_instance.web.id}'"
+    error_message = "connection_command_uses_selected_region failed."
+  }
+}
