@@ -95,6 +95,8 @@ aws-terraform-starter/
 
 ---
 
+See [the operations guide](docs/operations.md) for configuration, connection troubleshooting and safe cleanup.
+
 ## Quick Start
 
 ### Prerequisites
@@ -114,6 +116,8 @@ terraform init
 terraform plan
 terraform apply
 ```
+
+Project names must be 2–44 lowercase letters, digits or hyphens, start with a letter and end with a letter or digit. This leaves room for the generated S3 bucket suffixes.
 
 Changing `vpc_cidr` or `public_subnet_cidr`? The VPC must be /16 to /28 and the subnet must lie inside it. `terraform plan` checks both, so a wrong pair fails before anything is created.
 
@@ -227,5 +231,3 @@ These are exactly the kinds of extensions I want to build next as my Terraform s
 ## License
 
 MIT — see [LICENSE](./LICENSE) if present, otherwise free to use, modify, and learn from.
-
-Project names must be 2–44 lowercase letters, digits or hyphens, start with a letter and end with a letter or digit. This leaves room for the generated S3 bucket suffixes.
