@@ -91,3 +91,14 @@ variable "ssh_key_name" {
     error_message = "ssh_key_name must be null or a nonempty existing key pair name."
   }
 }
+
+variable "root_volume_size_gib" {
+  description = "Encrypted gp3 root disk size in GiB; at least the standard AL2023 image size."
+  type        = number
+  default     = 8
+  nullable    = false
+  validation {
+    condition     = var.root_volume_size_gib >= 8 && var.root_volume_size_gib <= 16384 && floor(var.root_volume_size_gib) == var.root_volume_size_gib
+    error_message = "root_volume_size_gib must be a whole number from 8 to 16384."
+  }
+}

@@ -111,6 +111,7 @@ resource "aws_instance" "web" {
   # Encrypted at rest with the AWS-managed EBS key; gp3 is cheaper than gp2 for the same size.
   root_block_device {
     volume_type = "gp3"
+    volume_size = var.root_volume_size_gib
     encrypted   = true
   }
 

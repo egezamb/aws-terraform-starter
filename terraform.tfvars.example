@@ -12,3 +12,6 @@ instance_type = "t3.micro"
 
 # For SSH, also select an existing key pair in aws_region. Never put a private key here.
 # ssh_key_name = "my-lab-key"
+
+# Encrypted gp3 root disk. Increasing this can add storage charges.
+root_volume_size_gib = 8

@@ -462,3 +462,30 @@ run "empty_key_name" {
   }
   expect_failures = [var.ssh_key_name]
 }
+
+run "custom_root_disk" {
+  command = plan
+  variables { root_volume_size_gib = 20 }
+  assert {
+    condition     = aws_instance.web.root_block_device[0].volume_size == 20 && aws_instance.web.root_block_device[0].encrypted
+    error_message = "custom_root_disk failed."
+  }
+}
+
+
+run "too_small_disk" {
+  command = plan
+  variables {
+    root_volume_size_gib = 7
+  }
+  expect_failures = [var.root_volume_size_gib]
+}
+
+
+run "fractional_disk" {
+  command = plan
+  variables {
+    root_volume_size_gib = 8.5
+  }
+  expect_failures = [var.root_volume_size_gib]
+}
