@@ -428,3 +428,16 @@ run "shell_project" {
   }
   expect_failures = [var.project_name]
 }
+
+run "null_inputs_use_safe_defaults" {
+  command = plan
+  variables {
+    project_name            = null
+    flow_log_retention_days = null
+    public_subnet_cidr      = null
+  }
+  assert {
+    condition     = var.project_name == "aws-terraform-starter" && var.flow_log_retention_days == 30 && var.public_subnet_cidr == "10.0.1.0/24"
+    error_message = "null_inputs_use_safe_defaults failed."
+  }
+}

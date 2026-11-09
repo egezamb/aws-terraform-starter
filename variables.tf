@@ -2,12 +2,14 @@ variable "aws_region" {
   description = "AWS region where resources will be created"
   type        = string
   default     = "eu-central-1"
+  nullable    = false
 }
 
 variable "project_name" {
   description = "Project name used to tag and prefix resources"
   type        = string
   default     = "aws-terraform-starter"
+  nullable    = false
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{0,42}[a-z0-9]$", var.project_name))
     error_message = "project_name must be 2-44 lowercase letters, digits or hyphens, starting with a letter and ending with a letter or digit."
@@ -18,6 +20,7 @@ variable "environment" {
   description = "Deployment environment (dev, staging, prod)"
   type        = string
   default     = "dev"
+  nullable    = false
 
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
@@ -29,6 +32,7 @@ variable "vpc_cidr" {
   description = "CIDR block for the VPC, from /16 to /28"
   type        = string
   default     = "10.0.0.0/16"
+  nullable    = false
 
   # AWS refuses any other size, but only at apply, after the plan looked fine.
   validation {
@@ -41,6 +45,7 @@ variable "public_subnet_cidr" {
   description = "CIDR block for the public subnet"
   type        = string
   default     = "10.0.1.0/24"
+  nullable    = false
   validation {
     condition     = can(cidrnetmask(var.public_subnet_cidr)) && can(regex("/(1[6-9]|2[0-8])$", var.public_subnet_cidr))
     error_message = "public_subnet_cidr must be an IPv4 CIDR from /16 to /28."
@@ -51,6 +56,7 @@ variable "instance_type" {
   description = "EC2 instance type (default is free-tier eligible). x86 (t3) or Graviton (t4g): the AMI follows the type's architecture."
   type        = string
   default     = "t3.micro"
+  nullable    = false
 }
 
 variable "allowed_ssh_cidr" {
@@ -68,6 +74,7 @@ variable "flow_log_retention_days" {
   description = "Days the VPC flow logs are kept in S3 before they are deleted"
   type        = number
   default     = 30
+  nullable    = false
 
   validation {
     condition     = var.flow_log_retention_days >= 1 && floor(var.flow_log_retention_days) == var.flow_log_retention_days
