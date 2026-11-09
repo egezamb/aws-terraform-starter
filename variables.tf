@@ -81,3 +81,13 @@ variable "flow_log_retention_days" {
     error_message = "flow_log_retention_days must be a whole number of days, at least 1."
   }
 }
+
+variable "ssh_key_name" {
+  description = "Existing EC2 key pair name in aws_region for optional SSH; Session Manager needs no key pair."
+  type        = string
+  default     = null
+  validation {
+    condition     = var.ssh_key_name == null ? true : length(trimspace(var.ssh_key_name)) > 0
+    error_message = "ssh_key_name must be null or a nonempty existing key pair name."
+  }
+}

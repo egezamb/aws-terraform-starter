@@ -441,3 +441,24 @@ run "null_inputs_use_safe_defaults" {
     error_message = "null_inputs_use_safe_defaults failed."
   }
 }
+
+run "ssh_uses_the_requested_key_pair" {
+  command = plan
+  variables {
+    ssh_key_name     = "lab-key"
+    allowed_ssh_cidr = "203.0.113.7/32"
+  }
+  assert {
+    condition     = aws_instance.web.key_name == "lab-key"
+    error_message = "ssh_uses_the_requested_key_pair failed."
+  }
+}
+
+
+run "empty_key_name" {
+  command = plan
+  variables {
+    ssh_key_name = " "
+  }
+  expect_failures = [var.ssh_key_name]
+}
