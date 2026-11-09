@@ -51,8 +51,8 @@ variable "allowed_ssh_cidr" {
   default     = null
 
   validation {
-    condition     = var.allowed_ssh_cidr == null || (can(cidrhost(var.allowed_ssh_cidr, 0)) && var.allowed_ssh_cidr != "0.0.0.0/0")
-    error_message = "allowed_ssh_cidr must be a CIDR such as 203.0.113.7/32, and not 0.0.0.0/0 (SSH open to the whole internet)."
+    condition     = var.allowed_ssh_cidr == null || (can(cidrnetmask(var.allowed_ssh_cidr)) && can(regex("/([1-9]|[12][0-9]|3[0-2])$", var.allowed_ssh_cidr)))
+    error_message = "allowed_ssh_cidr must be an IPv4 CIDR with a /1 to /32 prefix, such as 203.0.113.7/32. A /0 prefix opens SSH to the whole internet."
   }
 }
 

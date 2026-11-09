@@ -292,3 +292,41 @@ run "the_flow_log_bucket_is_tls_only_and_writable_only_by_this_accounts_log_deli
     error_message = "Log delivery may write only on behalf of this account (aws:SourceAccount), against the confused-deputy problem."
   }
 }
+
+run "ipv6_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "2001:db8::/64"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "noncanonical_worldwide_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "203.0.113.7/0"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "invalid_ssh_is_refused" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "not-a-cidr"
+  }
+  expect_failures = [var.allowed_ssh_cidr]
+}
+
+run "ssh_allows_an_ipv4_subnet" {
+  command = plan
+  variables {
+    allowed_ssh_cidr = "203.0.113.0/24"
+  }
+  assert {
+    condition = anytrue([
+      for rule in aws_security_group.web.ingress :
+      rule.from_port == 22 && contains(rule.cidr_blocks, "203.0.113.0/24")
+    ])
+    error_message = "An explicit IPv4 subnet must remain supported for SSH."
+  }
+}
