@@ -20,25 +20,31 @@ resource "aws_security_group" "web" {
   description = "Allow HTTP and SSH inbound traffic"
   vpc_id      = aws_vpc.main.id
 
-  ingress {
-    description = "HTTP from anywhere"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # SSH only when a CIDR is given; the default opens no port 22 at all.
-  dynamic "ingress" {
-    for_each = var.allowed_ssh_cidr == null ? [] : [var.allowed_ssh_cidr]
-    content {
-      description = "SSH from allowed CIDR"
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = [ingress.value]
-    }
-  }
+  # Assign [] explicitly when both ports are closed: omitting inline rules preserves old rules.
+  ingress = concat(
+    [for cidrs in(length(var.allowed_http_cidrs) == 0 ? [] : [var.allowed_http_cidrs]) : {
+      description      = "HTTP from allowed CIDRs"
+      from_port        = 80
+      to_port          = 80
+      protocol         = "tcp"
+      cidr_blocks      = cidrs
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    }],
+    [for cidr in(var.allowed_ssh_cidr == null ? [] : [var.allowed_ssh_cidr]) : {
+      description      = "SSH from allowed CIDR"
+      from_port        = 22
+      to_port          = 22
+      protocol         = "tcp"
+      cidr_blocks      = [cidr]
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    }]
+  )
 
   # Outbound only what the instance uses: dnf mirrors over HTTP/HTTPS. DNS goes to the VPC resolver,
   # which security groups do not filter.

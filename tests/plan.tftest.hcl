@@ -533,3 +533,29 @@ run "connection_command_uses_selected_region" {
     error_message = "connection_command_uses_selected_region failed."
   }
 }
+
+run "http_can_be_closed" {
+  command = plan
+  variables { allowed_http_cidrs = [] }
+  assert {
+    condition     = length(aws_security_group.web.ingress) == 0
+    error_message = "http_can_be_closed failed."
+  }
+}
+
+run "http_can_be_limited" {
+  command = plan
+  variables { allowed_http_cidrs = ["203.0.113.0/24"] }
+  assert {
+    condition     = alltrue([for rule in aws_security_group.web.ingress : rule.from_port != 80 || rule.cidr_blocks == tolist(["203.0.113.0/24"])])
+    error_message = "http_can_be_limited failed."
+  }
+}
+
+run "ipv6_http_cidr" {
+  command = plan
+  variables {
+    allowed_http_cidrs = ["::/0"]
+  }
+  expect_failures = [var.allowed_http_cidrs]
+}

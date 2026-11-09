@@ -120,3 +120,14 @@ variable "allow_bucket_force_destroy" {
   default     = false
   nullable    = false
 }
+
+variable "allowed_http_cidrs" {
+  description = "IPv4 CIDRs allowed to reach HTTP; an empty list closes port 80."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+  nullable    = false
+  validation {
+    condition     = alltrue([for cidr in var.allowed_http_cidrs : can(cidrnetmask(cidr))])
+    error_message = "Every allowed_http_cidrs entry must be an IPv4 CIDR."
+  }
+}
