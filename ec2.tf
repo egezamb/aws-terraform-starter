@@ -104,13 +104,9 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.web.id]
   iam_instance_profile   = aws_iam_instance_profile.web.name
 
-  user_data = <<-EOF
-              #!/bin/bash
-              dnf update -y
-              dnf install -y httpd
-              systemctl enable --now httpd
-              echo "<h1>Hello from ${var.project_name} — deployed by Terraform</h1>" > /var/www/html/index.html
-              EOF
+  user_data = templatefile("${path.module}/templates/web-bootstrap.sh.tftpl", {
+    project_name = var.project_name
+  })
 
   user_data_replace_on_change = true
 

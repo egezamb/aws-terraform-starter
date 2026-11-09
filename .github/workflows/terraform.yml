@@ -39,6 +39,9 @@ jobs:
       - name: Terraform test
         run: terraform test -no-color
 
+      - name: Bootstrap tests (no AWS)
+        run: python3 -m unittest discover -s tests -p "test_*.py"
+
       - name: Summary
         if: always()
         run: |
