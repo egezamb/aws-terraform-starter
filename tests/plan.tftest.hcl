@@ -3,6 +3,9 @@
 # They pin the secure defaults, so a change that loosens one fails here before review.
 
 mock_provider "aws" {
+  mock_data "aws_partition" {
+    defaults = { partition = "aws" }
+  }
   mock_data "aws_availability_zones" {
     defaults = {
       names = ["eu-central-1a", "eu-central-1b"]
@@ -558,4 +561,16 @@ run "ipv6_http_cidr" {
     allowed_http_cidrs = ["::/0"]
   }
   expect_failures = [var.allowed_http_cidrs]
+}
+
+run "iam_uses_provider_partition" {
+  command = plan
+  override_data {
+    target = data.aws_partition.current
+    values = { partition = "aws-cn" }
+  }
+  assert {
+    condition     = aws_iam_role_policy_attachment.web_ssm.policy_arn == "arn:aws-cn:iam::aws:policy/AmazonSSMManagedInstanceCore"
+    error_message = "iam_uses_provider_partition failed."
+  }
 }

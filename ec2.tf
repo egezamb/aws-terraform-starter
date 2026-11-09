@@ -88,7 +88,7 @@ resource "aws_iam_role" "web" {
 
 resource "aws_iam_role_policy_attachment" "web_ssm" {
   role       = aws_iam_role.web.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+  policy_arn = "arn:${data.aws_partition.current.partition}:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
 resource "aws_iam_instance_profile" "web" {
