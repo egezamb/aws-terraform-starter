@@ -402,3 +402,29 @@ run "tiny_subnet" {
   }
   expect_failures = [var.public_subnet_cidr]
 }
+
+run "uppercase_project" {
+  command = plan
+  variables {
+    project_name = "MyProject"
+  }
+  expect_failures = [var.project_name]
+}
+
+
+run "oversized_project" {
+  command = plan
+  variables {
+    project_name = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  }
+  expect_failures = [var.project_name]
+}
+
+
+run "shell_project" {
+  command = plan
+  variables {
+    project_name = "demo;id"
+  }
+  expect_failures = [var.project_name]
+}

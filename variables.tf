@@ -8,6 +8,10 @@ variable "project_name" {
   description = "Project name used to tag and prefix resources"
   type        = string
   default     = "aws-terraform-starter"
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9-]{0,42}[a-z0-9]$", var.project_name))
+    error_message = "project_name must be 2-44 lowercase letters, digits or hyphens, starting with a letter and ending with a letter or digit."
+  }
 }
 
 variable "environment" {

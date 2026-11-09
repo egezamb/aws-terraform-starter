@@ -223,3 +223,5 @@ These are exactly the kinds of extensions I want to build next as my Terraform s
 ## License
 
 MIT — see [LICENSE](./LICENSE) if present, otherwise free to use, modify, and learn from.
+
+Project names must be 2–44 lowercase letters, digits or hyphens, start with a letter and end with a letter or digit. This leaves room for the generated S3 bucket suffixes.
