@@ -102,3 +102,14 @@ variable "root_volume_size_gib" {
     error_message = "root_volume_size_gib must be a whole number from 8 to 16384."
   }
 }
+
+variable "asset_version_retention_days" {
+  description = "Days to retain noncurrent asset versions; current objects are not expired."
+  type        = number
+  default     = 30
+  nullable    = false
+  validation {
+    condition     = var.asset_version_retention_days >= 1 && floor(var.asset_version_retention_days) == var.asset_version_retention_days
+    error_message = "asset_version_retention_days must be a positive whole number."
+  }
+}

@@ -66,7 +66,7 @@ resource "aws_s3_bucket_policy" "assets" {
   depends_on = [aws_s3_bucket_public_access_block.assets]
 }
 
-# Versioning keeps every overwritten or deleted object. Expire old versions after 30 days, so
+# Versioning keeps every overwritten or deleted object. Expire old versions after the configured retention, so
 # storage cost does not grow forever, and clean up uploads that never finished.
 resource "aws_s3_bucket_lifecycle_configuration" "assets" {
   bucket = aws_s3_bucket.assets.id
@@ -77,7 +77,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "assets" {
     filter {}
 
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = var.asset_version_retention_days
     }
 
     abort_incomplete_multipart_upload {

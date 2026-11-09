@@ -489,3 +489,20 @@ run "fractional_disk" {
   }
   expect_failures = [var.root_volume_size_gib]
 }
+
+run "custom_asset_retention" {
+  command = plan
+  variables { asset_version_retention_days = 90 }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.assets.rule[0].noncurrent_version_expiration[0].noncurrent_days == 90
+    error_message = "custom_asset_retention failed."
+  }
+}
+
+run "fractional_asset_retention" {
+  command = plan
+  variables {
+    asset_version_retention_days = 1.5
+  }
+  expect_failures = [var.asset_version_retention_days]
+}
