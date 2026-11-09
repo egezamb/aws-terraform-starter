@@ -146,6 +146,8 @@ The workflow has a read-only token and every action is pinned to a commit SHA. D
 
 This catches formatting and syntax issues before code lands in `main` — exactly the kind of guardrails real DevOps teams set up.
 
+Run `make check` locally for backend-free init, formatting, validation, mocked Terraform tests and bootstrap tests. It needs Terraform 1.9.5 or newer, Python 3 and Make, but no AWS account. Run `make security` separately with Trivy installed.
+
 See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
 ---
