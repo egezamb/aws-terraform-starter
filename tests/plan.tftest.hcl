@@ -330,3 +330,49 @@ run "ssh_allows_an_ipv4_subnet" {
     error_message = "An explicit IPv4 subnet must remain supported for SSH."
   }
 }
+
+run "fractional_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = 1.5
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "zero_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = 0
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "negative_flow_log_retention_is_refused" {
+  command = plan
+  variables {
+    flow_log_retention_days = -1
+  }
+  expect_failures = [var.flow_log_retention_days]
+}
+
+run "flow_logs_can_expire_after_1_days" {
+  command = plan
+  variables {
+    flow_log_retention_days = 1
+  }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.flow_logs.rule[0].expiration[0].days == 1
+    error_message = "The lifecycle must use the requested whole number of days."
+  }
+}
+
+run "flow_logs_can_expire_after_90_days" {
+  command = plan
+  variables {
+    flow_log_retention_days = 90
+  }
+  assert {
+    condition     = aws_s3_bucket_lifecycle_configuration.flow_logs.rule[0].expiration[0].days == 90
+    error_message = "The lifecycle must use the requested whole number of days."
+  }
+}

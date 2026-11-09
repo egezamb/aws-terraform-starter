@@ -62,7 +62,7 @@ variable "flow_log_retention_days" {
   default     = 30
 
   validation {
-    condition     = var.flow_log_retention_days >= 1
-    error_message = "flow_log_retention_days must be at least 1."
+    condition     = var.flow_log_retention_days >= 1 && floor(var.flow_log_retention_days) == var.flow_log_retention_days
+    error_message = "flow_log_retention_days must be a whole number of days, at least 1."
   }
 }
