@@ -21,3 +21,12 @@ crash.*.log
 
 __pycache__/
 *.pyc
+
+# Alternative state names, JSON variable files and saved plans may contain secrets.
+*.tfstate
+*.tfvars
+*.tfvars.json
+*.tfplan
+*.tfplan.json
+plan.out
+plan.json
