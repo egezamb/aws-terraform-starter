@@ -376,3 +376,29 @@ run "flow_logs_can_expire_after_90_days" {
     error_message = "The lifecycle must use the requested whole number of days."
   }
 }
+
+run "malformed_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "bad"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}
+
+
+run "ipv6_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "2001:db8::/64"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}
+
+
+run "tiny_subnet" {
+  command = plan
+  variables {
+    public_subnet_cidr = "10.0.1.0/29"
+  }
+  expect_failures = [var.public_subnet_cidr]
+}

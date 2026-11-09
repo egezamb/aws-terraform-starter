@@ -37,6 +37,10 @@ variable "public_subnet_cidr" {
   description = "CIDR block for the public subnet"
   type        = string
   default     = "10.0.1.0/24"
+  validation {
+    condition     = can(cidrnetmask(var.public_subnet_cidr)) && can(regex("/(1[6-9]|2[0-8])$", var.public_subnet_cidr))
+    error_message = "public_subnet_cidr must be an IPv4 CIDR from /16 to /28."
+  }
 }
 
 variable "instance_type" {
