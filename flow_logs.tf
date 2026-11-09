@@ -19,7 +19,7 @@ resource "aws_flow_log" "vpc" {
 # trivy:ignore:AWS-0090 Versioning would keep every expired log as a noncurrent version and defeat the lifecycle rule.
 resource "aws_s3_bucket" "flow_logs" {
   bucket        = "${var.project_name}-flow-logs-${random_id.bucket_suffix.hex}"
-  force_destroy = true
+  force_destroy = var.allow_bucket_force_destroy
 
   tags = {
     Name    = "${var.project_name}-flow-logs"

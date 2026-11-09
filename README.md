@@ -127,6 +127,8 @@ For a shell, use Session Manager (needs the AWS CLI's Session Manager plugin): `
 terraform destroy
 ```
 
+**Bucket deletion is protected by default.** A nonempty bucket makes destroy fail instead of deleting your data. For disposable labs only, set `allow_bucket_force_destroy = true`, run `terraform apply` to persist that choice, then destroy. This removes every asset version and flow log.
+
 Always destroy when done: once the credits or the free months run out, a running instance is billed.
 
 ---

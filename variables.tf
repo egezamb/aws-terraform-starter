@@ -113,3 +113,10 @@ variable "asset_version_retention_days" {
     error_message = "asset_version_retention_days must be a positive whole number."
   }
 }
+
+variable "allow_bucket_force_destroy" {
+  description = "Opt in to deleting all assets, versions and flow logs during terraform destroy. Leave false to protect nonempty buckets."
+  type        = bool
+  default     = false
+  nullable    = false
+}

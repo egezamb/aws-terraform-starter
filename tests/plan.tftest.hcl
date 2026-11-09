@@ -506,3 +506,21 @@ run "fractional_asset_retention" {
   }
   expect_failures = [var.asset_version_retention_days]
 }
+
+run "nonempty_buckets_are_protected" {
+  command = plan
+
+  assert {
+    condition     = !aws_s3_bucket.assets.force_destroy && !aws_s3_bucket.flow_logs.force_destroy
+    error_message = "nonempty_buckets_are_protected failed."
+  }
+}
+
+run "disposable_buckets_can_be_destroyed" {
+  command = plan
+  variables { allow_bucket_force_destroy = true }
+  assert {
+    condition     = aws_s3_bucket.assets.force_destroy && aws_s3_bucket.flow_logs.force_destroy
+    error_message = "disposable_buckets_can_be_destroyed failed."
+  }
+}
