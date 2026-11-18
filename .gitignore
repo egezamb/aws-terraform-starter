@@ -30,3 +30,6 @@ __pycache__/
 *.tfplan.json
 plan.out
 plan.json
+
+# tflint plugins, installed by tflint --init
+.tflint.d/
