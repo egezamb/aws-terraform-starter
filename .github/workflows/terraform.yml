@@ -12,8 +12,13 @@ permissions:
 
 jobs:
   terraform-check:
-    name: Format, validate and test
+    name: Format, validate and test (Terraform ${{ matrix.terraform }})
     runs-on: ubuntu-latest
+    # The oldest version providers.tf allows, and a current one.
+    strategy:
+      fail-fast: false
+      matrix:
+        terraform: ["1.7.5", "1.15.4"]
 
     steps:
       - name: Checkout code
@@ -24,7 +29,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
         with:
-          terraform_version: 1.9.5
+          terraform_version: ${{ matrix.terraform }}
 
       - name: Terraform format
         run: terraform fmt -check -recursive
@@ -47,7 +52,7 @@ jobs:
         run: |
           {
             echo "### Terraform CI"
-            echo "- Format, init, validate and test: ${{ job.status }}"
+            echo "- Terraform ${{ matrix.terraform }}: format, init, validate and test: ${{ job.status }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   lint:
