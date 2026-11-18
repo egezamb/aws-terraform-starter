@@ -69,7 +69,7 @@ This repo is the result of that learning, made public so anyone else starting Te
 
 - **Terraform** `>= 1.7.0` (the first release whose `terraform test` has mock providers)
 - **AWS Provider** `~> 6.68` (Hashicorp official), kept current by Dependabot
-- **GitHub Actions** for CI (fmt + validate + `terraform test` + trivy security scan on every push/PR)
+- **GitHub Actions** for CI on every push and PR: fmt, validate and `terraform test` on Terraform 1.7.5 and 1.15.4, the bootstrap script tests, tflint and a trivy security scan
 - **Amazon Linux 2023** (the current AMI, read from the public SSM parameter AWS maintains)
 
 ---
