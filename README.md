@@ -1,7 +1,7 @@
 # AWS Terraform Starter — VPC + EC2 + S3
 
-![Terraform](https://img.shields.io/badge/Terraform-1.5+-7B42BC?style=flat&logo=terraform&logoColor=white)
-![AWS](https://img.shields.io/badge/AWS-Provider%205.x-FF9900?style=flat&logo=amazon-aws&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-1.7+-7B42BC?style=flat&logo=terraform&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-Provider%206.x-FF9900?style=flat&logo=amazon-aws&logoColor=white)
 ![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?style=flat&logo=github-actions&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 
@@ -67,8 +67,8 @@ This repo is the result of that learning, made public so anyone else starting Te
 
 ## Tech Stack
 
-- **Terraform** `>= 1.5.0`
-- **AWS Provider** `~> 5.0` (Hashicorp official)
+- **Terraform** `>= 1.7.0` (the first release whose `terraform test` has mock providers)
+- **AWS Provider** `~> 6.68` (Hashicorp official), kept current by Dependabot
 - **GitHub Actions** for CI (fmt + validate + `terraform test` + trivy security scan on every push/PR)
 - **Amazon Linux 2023** (the current AMI, read from the public SSM parameter AWS maintains)
 
@@ -101,7 +101,7 @@ See [the operations guide](docs/operations.md) for configuration, connection tro
 
 ### Prerequisites
 - AWS account with programmatic credentials configured (`aws configure` or environment variables)
-- Terraform `>= 1.5` installed (`brew install terraform` on macOS)
+- Terraform `>= 1.7` installed (`brew install terraform` on macOS)
 
 ### Deploy
 
