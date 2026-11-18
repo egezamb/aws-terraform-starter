@@ -59,7 +59,7 @@ It applies the same practices real DevOps teams rely on — version control, CI 
 
 ## Why I Built This
 
-I am a 3rd-year Software Development student moving deeper into cloud and DevOps. I had already deployed AWS resources manually via the Console as a freelancer, but I wanted to learn **Terraform** properly — not just `terraform apply` from a tutorial, but writing structured code from scratch.
+I am a final-year Software Development student moving deeper into cloud and DevOps. I had already deployed AWS resources manually via the Console as a freelancer, but I wanted to learn **Terraform** properly — not just `terraform apply` from a tutorial, but writing structured code from scratch.
 
 This repo is the result of that learning, made public so anyone else starting Terraform can clone, read, and run it.
 
@@ -217,7 +217,7 @@ These are exactly the kinds of extensions I want to build next as my Terraform s
 
 ## Author
 
-**Ege Zambelli** — 3rd-year Software Development student at WSB Merito Wrocław, focusing on cloud engineering and DevOps.
+**Ege Zambelli** — final-year Software Development student at WSB Merito Wrocław, focusing on cloud engineering and DevOps.
 
 - GitHub: [@egezamb](https://github.com/egezamb)
 - Related projects:
