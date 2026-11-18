@@ -1,7 +1,7 @@
 TF ?= terraform
 PYTHON ?= python3
 
-.PHONY: check init fmt validate test bootstrap security
+.PHONY: check init fmt validate test bootstrap lint security
 check:
 	$(MAKE) init
 	$(MAKE) fmt validate test bootstrap
@@ -23,3 +23,7 @@ bootstrap:
 
 security:
 	trivy config --skip-check-update --severity HIGH,CRITICAL --exit-code 1 .
+
+lint:
+	tflint --init
+	tflint --format compact
