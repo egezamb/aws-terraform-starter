@@ -149,16 +149,18 @@ Always destroy when done: once the credits or the free months run out, a running
 
 Every push and pull request triggers a GitHub Actions workflow that:
 
-1. Runs `terraform fmt -check -recursive` (fails if code isn't formatted)
+1. On Terraform 1.7.5 (the oldest version `providers.tf` allows) and 1.15.4, runs `terraform fmt -check -recursive` (fails if code isn't formatted)
 2. Runs `terraform init -backend=false`
 3. Runs `terraform validate`, then `terraform test`: plan-only tests with mocked providers (`tests/plan.tftest.hcl`) that pin the secure defaults (SSH closed unless asked for, a Session Manager profile, encrypted disk, IMDSv2, a private, versioned, TLS-only bucket). The result goes to the job summary.
-4. Scans the code with `trivy config` and fails on any new HIGH or CRITICAL finding. Findings accepted on purpose carry a `trivy:ignore` comment with the reason on the resource itself.
+4. Runs the bootstrap script tests (`tests/test_bootstrap.py`) with fake `dnf` and `systemctl`.
+5. Lints with `tflint`: Terraform's recommended rules and the AWS ruleset, pinned in `.tflint.hcl`.
+6. Scans the code with `trivy config` and fails on any new HIGH or CRITICAL finding. Findings accepted on purpose carry a `trivy:ignore` comment with the reason on the resource itself.
 
 The workflow has a read-only token and every action is pinned to a commit SHA. Dependabot proposes updates for the actions and the Terraform providers, and `.terraform.lock.hcl` is committed so CI uses the same provider builds as your machine.
 
 This catches formatting and syntax issues before code lands in `main` — exactly the kind of guardrails real DevOps teams set up.
 
-Run `make check` locally for backend-free init, formatting, validation, mocked Terraform tests and bootstrap tests. It needs Terraform 1.9.5 or newer, Python 3 and Make, but no AWS account. Run `make security` separately with Trivy installed.
+Run `make check` locally for backend-free init, formatting, validation, mocked Terraform tests and bootstrap tests. It needs Terraform 1.7 or newer, Python 3 and Make, but no AWS account. Run `make lint` with tflint installed and `make security` with Trivy installed.
 
 See [`.github/workflows/terraform.yml`](./.github/workflows/terraform.yml).
 
