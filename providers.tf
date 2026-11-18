@@ -1,5 +1,6 @@
 terraform {
-  required_version = ">= 1.5.0"
+  # 1.7 is the first release with mock_provider, which tests/plan.tftest.hcl needs.
+  required_version = ">= 1.7.0"
 
   required_providers {
     aws = {
