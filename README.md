@@ -78,19 +78,27 @@ This repo is the result of that learning, made public so anyone else starting Te
 
 ```
 aws-terraform-starter/
-├── providers.tf              # Terraform + AWS provider configuration
-├── variables.tf              # All input variables with descriptions and validation
-├── vpc.tf                    # VPC, IGW, subnet, route table
-├── ec2.tf                    # EC2 + security group + AMI (SSM parameter) + user_data
-├── s3.tf                     # S3 bucket with versioning + encryption + access block
-├── flow_logs.tf              # VPC flow logs to a private S3 bucket that expires them
-├── outputs.tf                # Useful outputs (IPs, IDs, URLs)
-├── terraform.tfvars.example  # Example variables file (copy to terraform.tfvars)
-├── tests/plan.tftest.hcl     # Plan-only tests with mocked providers (terraform test)
-├── .gitignore                # Excludes state files, .terraform/, secrets
+├── providers.tf                  # Terraform + AWS provider configuration
+├── variables.tf                  # All input variables with descriptions and validation
+├── vpc.tf                        # VPC, IGW, subnet, route table
+├── ec2.tf                        # EC2 + security group + AMI (SSM parameter) + user_data
+├── s3.tf                         # S3 bucket with versioning + encryption + access block
+├── flow_logs.tf                  # VPC flow logs to a private S3 bucket that expires them
+├── outputs.tf                    # Useful outputs (IPs, IDs, URLs, Session Manager command)
+├── templates/
+│   └── web-bootstrap.sh.tftpl    # user_data that installs and starts Apache
+├── terraform.tfvars.example      # Example variables file (copy to terraform.tfvars)
+├── tests/
+│   ├── plan.tftest.hcl           # Plan-only tests with mocked providers (terraform test)
+│   └── test_bootstrap.py         # Runs the bootstrap script with fake dnf and systemctl
+├── docs/operations.md            # Connecting, troubleshooting and safe teardown
+├── Makefile                      # make check: the same checks CI runs
+├── .tflint.hcl                   # tflint rules: Terraform recommended + AWS ruleset
+├── .gitignore                    # Excludes state files, .terraform/, secrets
 └── .github/
+    ├── dependabot.yml            # Weekly grouped updates for actions and providers
     └── workflows/
-        └── terraform.yml     # CI: fmt + init + validate + test, and a trivy security scan
+        └── terraform.yml         # CI: fmt, validate, test, tflint and a trivy security scan
 ```
 
 ---
