@@ -18,3 +18,10 @@ root_volume_size_gib = 8
 
 # Optional: restrict the web demo to your network, or [] to close HTTP.
 # allowed_http_cidrs = ["203.0.113.0/24"]
+
+# VPC flow logs and old asset versions are deleted after this many days.
+flow_log_retention_days      = 30
+asset_version_retention_days = 30
+
+# Leave false: terraform destroy then stops at a nonempty bucket instead of deleting its objects.
+allow_bucket_force_destroy = false
